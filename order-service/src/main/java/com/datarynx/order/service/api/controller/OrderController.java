@@ -1,0 +1,66 @@
+package com.datarynx.order.service.api.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.netflix.hystrix.EnableHystrix;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import com.datarynx.order.service.api.common.Payment;
+import com.datarynx.order.service.api.common.TransactionRequest;
+import com.datarynx.order.service.api.common.TransactionResponse;
+import com.datarynx.order.service.api.entity.Order;
+import com.datarynx.order.service.api.service.OrderService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
+
+@RestController
+@RequestMapping("/order")
+@EnableHystrix
+@EnableHystrixDashboard
+public class OrderController {
+
+    @Autowired
+    private OrderService service;
+    
+    @Autowired
+    RestTemplate restTemplate;
+    
+    String response = "";
+    Order order;
+    Payment  paymentResponse;
+    
+    @PostMapping("/bookOrder")
+    public TransactionResponse bookOrder(@RequestBody TransactionRequest request) throws JsonProcessingException {
+
+        return service.saveOrder(request);
+    }
+    
+	/* Get method to find the payment details based on OrderID */
+    
+    @HystrixCommand(groupKey = "datarynxGetcall", commandKey = "datarynxGetcall", fallbackMethod = "paymentServiceGetFallBack")
+    @GetMapping("/{orderId}")
+    public Payment getOrderDetailsByOrderId(@PathVariable int orderId) throws JsonProcessingException{
+    	
+    	
+    	paymentResponse = restTemplate.getForObject("http://PAYMENT-SERVICE/payment/"+orderId, Payment.class);
+    	
+    	return paymentResponse;
+    }
+    
+	/* Fallback Method for getOrderDetails Circuitbreaker */
+
+    public Payment paymentServiceGetFallBack(int orderId) {
+		response = "payment service is down due to network failure";
+		Payment payment = new Payment();
+		payment.setPaymentStatus(response);
+		return payment;
+	}
+	
+}

@@ -1,0 +1,18 @@
+package com.datarynx.shopping.api;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.netflix.hystrix.EnableHystrix;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+@RestController
+@EnableHystrix
+@EnableHystrixDashboard
+public class CartController {
+	
+	@Autowired
+	private RestTemplate restTemplate;
+	
+
+}

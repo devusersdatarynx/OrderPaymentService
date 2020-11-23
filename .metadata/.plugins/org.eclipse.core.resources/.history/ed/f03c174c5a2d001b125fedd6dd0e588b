@@ -1,0 +1,42 @@
+package com.datarynx.order.service.api.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.datarynx.order.service.api.common.TransactionRequest;
+import com.datarynx.order.service.api.common.TransactionResponse;
+import com.datarynx.order.service.api.service.OrderService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
+
+@RestController
+@RequestMapping("/order")
+public class OrderController {
+
+    @Autowired
+    private OrderService service;
+    
+    @HystrixCommand(groupKey = "datarynx", commandKey = "datarynx", fallbackMethod = "paymentServiceFallBack")
+    @PostMapping("/bookOrder")
+    public TransactionResponse bookOrder(@RequestBody TransactionRequest request) throws JsonProcessingException {
+        return service.saveOrder(request);
+    }
+    
+    
+    @GetMapping("/{orderId}")
+    public String getOrderDetailsByOrderId(@PathVariable int orderId) throws JsonProcessingException{
+    	return "order details response for orderId-"+orderId;
+    }
+    
+	
+	public TransactionResponse paymentServiceFallBack() {
+		response = "payment service is down due to network failure";
+		return new TransactionResponse(order, paymentResponse.getAmount(), paymentResponse.getTransactionId(),
+				response);
+	}
+}

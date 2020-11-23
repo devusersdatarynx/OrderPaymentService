@@ -1,0 +1,5 @@
+package com.datarynx.cloud.gateway.api.controller;
+
+public class FallbackController {
+
+}
