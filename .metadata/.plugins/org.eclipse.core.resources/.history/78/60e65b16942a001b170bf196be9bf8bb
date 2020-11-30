@@ -1,5 +1,0 @@
-package com.datarynx.hystrix.dashboard.api.controller;
-
-public class FallbackController {
-
-}
